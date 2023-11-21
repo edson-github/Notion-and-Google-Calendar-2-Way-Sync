@@ -211,10 +211,15 @@ def makeCalEvent(eventName, eventDescription, eventStartTime, sourceURL, eventEn
                     'url': sourceURL,
                 }
             }
-    elif eventStartTime.hour == 0 and eventStartTime.minute ==  0 and eventEndTime.hour == 0 and eventEndTime.minute == 0 and eventStartTime != eventEndTime:
-        
+    elif (
+        eventStartTime.hour == 0
+        and eventStartTime.minute == 0
+        and eventEndTime.hour == 0
+        and eventEndTime.minute == 0
+    ):
+
         eventEndTime = eventEndTime + timedelta(days=1) #gotta make it to 12AM the day after
-        
+
         event = {
             'summary': eventName,
             'description': eventDescription,
@@ -231,21 +236,18 @@ def makeCalEvent(eventName, eventDescription, eventStartTime, sourceURL, eventEn
                 'url': sourceURL,
             }
         }
-    
+
     else: #just 2 datetimes passed in from the method call that are not at 12 AM
-        if eventStartTime.hour == 0 and eventStartTime.minute == 0 and eventEndTime != eventStartTime: #Start on Notion is 12 am and end is also given on Notion 
+        if eventStartTime.hour == 0 and eventStartTime.minute == 0: #Start on Notion is 12 am and end is also given on Notion 
             eventStartTime = eventStartTime #start will be 12 am
             eventEndTime = eventEndTime #end will be whenever specified
-        elif eventStartTime.hour == 0 and eventStartTime.minute == 0: #if the datetime fed into this is only a date or is at 12 AM, then the event will fall under here
-            eventStartTime = datetime.combine(eventStartTime, datetime.min.time()) + timedelta(hours=DEFAULT_EVENT_START) ##make the events pop up at 8 am instead of 12 am
-            eventEndTime = eventStartTime + timedelta(minutes= DEFAULT_EVENT_LENGTH)  
         elif eventEndTime == eventStartTime: #this would meant that only 1 datetime was actually on the notion dashboard 
             eventStartTime = eventStartTime
-            eventEndTime = eventStartTime + timedelta(minutes= DEFAULT_EVENT_LENGTH) 
+            eventEndTime = eventStartTime + timedelta(minutes= DEFAULT_EVENT_LENGTH)
         else: #if you give a specific start time to the event
             eventStartTime = eventStartTime
             eventEndTime = eventEndTime
-        
+
         event = {
             'summary': eventName,
             'description': eventDescription,
@@ -261,7 +263,7 @@ def makeCalEvent(eventName, eventDescription, eventStartTime, sourceURL, eventEn
                 'title': 'Notion Link',
                 'url': sourceURL,
             }
-        }    
+        }
     print('Adding this event to calendar: ', eventName)
 
     print(event)
@@ -312,10 +314,15 @@ def upDateCalEvent(eventName, eventDescription, eventStartTime, sourceURL, event
                     'url': sourceURL,
                 }
             }
-    elif eventStartTime.hour == 0 and eventStartTime.minute ==  0 and eventEndTime.hour == 0 and eventEndTime.minute == 0 and eventStartTime != eventEndTime: #it's a multiple day event
-        
+    elif (
+        eventStartTime.hour == 0
+        and eventStartTime.minute == 0
+        and eventEndTime.hour == 0
+        and eventEndTime.minute == 0
+    ): #it's a multiple day event
+
         eventEndTime = eventEndTime + timedelta(days=1) #gotta make it to 12AM the day after
-        
+
         event = {
             'summary': eventName,
             'description': eventDescription,
@@ -332,20 +339,17 @@ def upDateCalEvent(eventName, eventDescription, eventStartTime, sourceURL, event
                 'url': sourceURL,
             }
         }
-    
+
     else: #just 2 datetimes passed in 
-        if eventStartTime.hour == 0 and eventStartTime.minute == 0 and eventEndTime != eventStartTime: #Start on Notion is 12 am and end is also given on Notion 
+        if eventStartTime.hour == 0 and eventStartTime.minute == 0: #Start on Notion is 12 am and end is also given on Notion 
             eventStartTime = eventStartTime #start will be 12 am
             eventEndTime = eventEndTime #end will be whenever specified
-        elif eventStartTime.hour == 0 and eventStartTime.minute == 0: #if the datetime fed into this is only a date or is at 12 AM, then the event will fall under here
-            eventStartTime = datetime.combine(eventStartTime, datetime.min.time()) + timedelta(hours=DEFAULT_EVENT_START) ##make the events pop up at 8 am instead of 12 am
-            eventEndTime = eventStartTime + timedelta(minutes= DEFAULT_EVENT_LENGTH)  
         elif eventEndTime == eventStartTime: #this would meant that only 1 datetime was actually on the notion dashboard 
             eventStartTime = eventStartTime
-            eventEndTime = eventStartTime + timedelta(minutes= DEFAULT_EVENT_LENGTH) 
+            eventEndTime = eventStartTime + timedelta(minutes= DEFAULT_EVENT_LENGTH)
         else: #if you give a specific start time to the event
             eventStartTime = eventStartTime
-            eventEndTime = eventEndTime 
+            eventEndTime = eventEndTime
         event = {
             'summary': eventName,
             'description': eventDescription,
@@ -361,19 +365,16 @@ def upDateCalEvent(eventName, eventDescription, eventStartTime, sourceURL, event
                 'title': 'Notion Link',
                 'url': sourceURL,
             }
-        }    
+        }
     print('Updating this event to calendar: ', eventName)
 
-    if currentCalId == CalId:
-        x = service.events().update(calendarId=CalId, eventId = eventId, body=event).execute()
-
-    else: #When we have to move the event to a new calendar. We must move the event over to the new calendar and then update the information on the event
-        print('Event ' + eventId)
-        print('CurrentCal ' + currentCalId)
-        print('NewCal ' + CalId)
+    if currentCalId != CalId:
+        print(f'Event {eventId}')
+        print(f'CurrentCal {currentCalId}')
+        print(f'NewCal {CalId}')
         x= service.events().move(calendarId= currentCalId , eventId= eventId, destination=CalId).execute()
         print('New event id: ' + x['id'])
-        x = service.events().update(calendarId=CalId, eventId = eventId, body=event).execute()
+    x = service.events().update(calendarId=CalId, eventId = eventId, body=event).execute()
 
     return x['id']
 
